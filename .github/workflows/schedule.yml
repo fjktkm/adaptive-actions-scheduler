@@ -1,0 +1,32 @@
+name: Daily Schedule Check
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  record-execution-time:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Record execution time
+        id: record
+        run: |
+          SCHEDULED=$(date -u -d "$(date -u +%Y-%m-%d) 03:00:00" +%s)
+          ACTUAL=$(date +%s)
+          echo "${SCHEDULED},${ACTUAL}" >> log.csv
+          echo "actual=${ACTUAL}" >> $GITHUB_OUTPUT
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add log.csv
+          git diff --staged --quiet || git commit -m "Record execution time: ${{ steps.record.outputs.actual }}"
+          git push
