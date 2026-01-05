@@ -1,0 +1,33 @@
+{
+    "name": "maturin",
+    "image": "ghcr.io/astral-sh/uv:debian",
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+    "mounts": [
+        {
+            "source": "uv-cache",
+            "target": "/root/.cache/uv",
+            "type": "volume"
+        },
+        {
+            "target": "${containerWorkspaceFolder}/.venv",
+            "type": "volume"
+        }
+    ],
+    "containerEnv": {
+        "UV_LINK_MODE": "copy"
+    },
+    "postCreateCommand": "uv sync",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "charliermarsh.ruff",
+                "mechatroner.rainbow-csv",
+                "ms-python.python",
+                "tamasfe.even-better-toml"
+            ]
+        }
+    }
+}
