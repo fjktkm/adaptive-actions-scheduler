@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import reservoirpy as rpy
 from reservoirpy.nodes import Reservoir, Ridge
 
 
@@ -13,11 +12,11 @@ def load_data(csv_path: str) -> pd.DataFrame:
         + pd.to_datetime(df["startedAt"]).dt.minute / 60
         + pd.to_datetime(df["startedAt"]).dt.second / 3600
     )
+    df = df.sort_values("startedAt").reset_index(drop=True)
     return df
 
 
 def build_model():
-    rpy.set_seed(42)
     reservoir = Reservoir(units=100, lr=0.5, sr=0.9, input_scaling=1 / 24)
     readout = Ridge(ridge=1e-7)
     return reservoir >> readout
