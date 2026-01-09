@@ -16,7 +16,7 @@ jobs:
         run: uv sync
 
       - name: Download data
-        run: data/download.sh
+        run: bash data/download.sh
 
       - name: Calculate next cron schedule
         id: cron
