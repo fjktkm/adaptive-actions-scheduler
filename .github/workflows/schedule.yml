@@ -1,4 +1,4 @@
-name: Greeting
+name: Adaptive Schedule Update
 
 on:
   schedule:
@@ -6,7 +6,29 @@ on:
   workflow_dispatch:
 
 jobs:
-  greet:
+  update-schedule:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Hello, World!"
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Download data
+        run: data/download.sh
+
+      - name: Calculate next cron schedule
+        id: cron
+        run: echo "schedule=$(uv run main.py)" >> $GITHUB_OUTPUT
+
+      - name: Update workflow and push
+        run: |
+          sed -i 's/cron: "20 1 * * *"/' .github/workflows/schedule.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git add .github/workflows/schedule.yml
+            git commit -m "Update cron schedule"
+            git push
+          fi
