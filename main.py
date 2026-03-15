@@ -22,10 +22,10 @@ def main():
     X = df["executed_hour"].values.reshape(-1, 1)
     y = df["scheduled_hour"].values.reshape(-1, 1)
 
-    reservoir = Reservoir(units=100, lr=0.5, sr=0.9, input_scaling=1 / 24)
-    readout = Ridge(ridge=1e-7)
+    reservoir = Reservoir(units=100, lr=0.4, sr=0.2, input_scaling=1 / 24)
+    readout = Ridge(ridge=1e-9)
     model = reservoir >> readout
-    model.fit(X, y, warmup=1)
+    model.fit(X, y, warmup=5)
 
     target_time = 3.0
     predicted_cron = model.run(np.array([[target_time]]))[0, 0]
