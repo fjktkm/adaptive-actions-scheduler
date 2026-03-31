@@ -2,18 +2,30 @@ import numpy as np
 import pandas as pd
 from reservoirpy.nodes import Reservoir, Ridge
 
+JST_OFFSET_HOURS = 9
+
 
 def load_data(csv_path: str) -> pd.DataFrame:
     df = pd.read_csv(csv_path)
     cron_parts = df["cron"].str.split(expand=True)
-    df["scheduled_hour"] = cron_parts[1].astype(int) + cron_parts[0].astype(int) / 60
+    scheduled_hour_utc = cron_parts[1].astype(int) + cron_parts[0].astype(int) / 60
+    df["scheduled_hour"] = (scheduled_hour_utc + JST_OFFSET_HOURS) % 24
+
+    started_at_jst = pd.to_datetime(df["startedAt"], utc=True).dt.tz_convert("Asia/Tokyo")
     df["executed_hour"] = (
-        pd.to_datetime(df["startedAt"]).dt.hour
-        + pd.to_datetime(df["startedAt"]).dt.minute / 60
-        + pd.to_datetime(df["startedAt"]).dt.second / 3600
+        started_at_jst.dt.hour
+        + started_at_jst.dt.minute / 60
+        + started_at_jst.dt.second / 3600
     )
     df = df.sort_values("startedAt").reset_index(drop=True)
     return df
+
+
+def jst_hour_to_utc_cron(hour_value: float) -> tuple[int, int]:
+    utc_hour_value = (hour_value - JST_OFFSET_HOURS) % 24
+    cron_hour = int(utc_hour_value)
+    cron_minute = int((utc_hour_value % 1) * 60)
+    return cron_minute, cron_hour
 
 
 def main():
@@ -27,11 +39,10 @@ def main():
     model = reservoir >> readout
     model.fit(X, y, warmup=5)
 
-    target_time = 3.0
+    target_time = 12.0
     predicted_cron = model.run(np.array([[target_time]]))[0, 0]
 
-    cron_hour = int(predicted_cron)
-    cron_minute = int((predicted_cron % 1) * 60)
+    cron_minute, cron_hour = jst_hour_to_utc_cron(predicted_cron)
 
     print(f"{cron_minute} {cron_hour} * * *")
 
