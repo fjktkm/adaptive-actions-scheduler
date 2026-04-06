@@ -2,7 +2,7 @@ name: Adaptive Schedule Update
 
 on:
   schedule:
-    - cron: "50 23 * * *"
+    - cron: "44 1 * * *"
   workflow_dispatch:
 
 jobs:
