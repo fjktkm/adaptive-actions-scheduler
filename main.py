@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
-from reservoirpy.nodes import Reservoir, Ridge
+from reservoirpy.nodes import Reservoir, RLS
 
 JST_OFFSET_HOURS = 9
+RLS_FORGETTING_FACTOR = 0.94
 
 
 def load_data(csv_path: str) -> pd.DataFrame:
@@ -35,7 +36,7 @@ def main():
     y = df["scheduled_hour"].values.reshape(-1, 1)
 
     reservoir = Reservoir(units=100, lr=0.4, sr=0.2, input_scaling=1 / 24)
-    readout = Ridge(ridge=1e-9)
+    readout = RLS(forgetting=RLS_FORGETTING_FACTOR)
     model = reservoir >> readout
     model.fit(X, y, warmup=5)
 
