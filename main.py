@@ -40,7 +40,7 @@ def main():
     model = reservoir >> readout
     model.fit(X, y, warmup=5)
 
-    target_time = 12.0
+    target_time = 0.0
     predicted_cron = model.run(np.array([[target_time]]))[0, 0]
 
     cron_minute, cron_hour = jst_hour_to_utc_cron(predicted_cron)
